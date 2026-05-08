@@ -1,5 +1,4 @@
 import { TravelData } from "@/types/travel";
-import type { Json } from "@/integrations/supabase/types";
 
 export interface ArchiveEntry {
   id: string;
@@ -51,42 +50,17 @@ export function saveArchiveEntry(data: TravelData, output?: string): ArchiveEntr
 async function syncToCloud(entry: ArchiveEntry) {
   try {
     const { supabase } = await import("@/integrations/supabase/client");
-    const sig = makeSignature(entry.data);
-
-    // Read existing cloud outputs to merge
-    const { data: existing } = await supabase
-      .from("content_archive")
-      .select("outputs")
-      .eq("signature", sig)
-      .maybeSingle();
-
-    const mergedOutputs = Array.from(
-      new Set([...(existing?.outputs ?? []), ...(entry.outputs ?? [])]),
-    );
-
-    const d = entry.data;
-    await supabase.from("content_archive").upsert(
-      {
-        signature: sig,
-        destination: d.destino ?? "",
-        hotel: d.hotel ?? "",
-        agency: d.agencia ?? null,
-        campaign: d.campanha ?? null,
-        room_type: d.quartoTipo ?? null,
-        duration: d.duracao ?? null,
-        start_date: d.dataInicio ?? null,
-        end_date: d.dataFim ?? null,
-        total_price: d.precoTotal ?? null,
-        installment_price: d.precoParcela ?? null,
-        cash_price: d.precoAVista ?? null,
-        outputs: mergedOutputs,
-        included_items: Array.isArray(d.inclui) ? d.inclui : [],
-        data: d as unknown as Json,
+    const lastOutput = entry.outputs?.[entry.outputs.length - 1];
+    const { error } = await supabase.functions.invoke("archive-records", {
+      body: {
+        action: "upsert",
+        entry: { ...entry, data: entry.data },
+        output: lastOutput,
       },
-      { onConflict: "signature" },
-    );
-  } catch {
-    // Local archive remains available if Supabase is unreachable
+    });
+    if (error) console.warn("[archive] syncToCloud failed:", error);
+  } catch (e) {
+    console.warn("[archive] syncToCloud exception:", e);
   }
 }
 
@@ -122,7 +96,9 @@ export async function loadArchiveEntriesFromCloud(): Promise<ArchiveEntry[]> {
 export async function deleteArchiveEntry(id: string) {
   try {
     const { supabase } = await import("@/integrations/supabase/client");
-    await supabase.from("content_archive").delete().eq("id", id);
+    await supabase.functions.invoke("archive-records", {
+      body: { action: "delete", id },
+    });
   } catch {
     // ignore
   }
@@ -131,7 +107,9 @@ export async function deleteArchiveEntry(id: string) {
 export async function clearArchiveEntries() {
   try {
     const { supabase } = await import("@/integrations/supabase/client");
-    await supabase.from("content_archive").delete().not("id", "is", null);
+    await supabase.functions.invoke("archive-records", {
+      body: { action: "clear" },
+    });
   } catch {
     // ignore
   }
