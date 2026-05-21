@@ -481,17 +481,19 @@ export function drawStory(
       const sepY2 = subY2 + Math.round(H * 0.020);
       const ilx = bodyX + es.dx, ily = sepY2 + Math.round(H * 0.022) + es.dy;
       const color = es.color || "#a78bfa";
-      let iy2 = ily + Math.round(H * 0.026);
-      const lineH2 = Math.round(H * 0.022);
-      const itemFs = Math.round(H * 0.0175 * sc);
+      let iy2 = ily + Math.round(H * 0.028);
+      const itemFs = Math.round(H * 0.016 * sc);
+      const lineH2 = Math.round(itemFs * 1.35);
+      const itemGap = Math.round(itemFs * 0.45);
       const txtX2 = ilx + Math.round(W * 0.022);
-      const maxTxtW = W * 0.48 - Math.round(W * 0.022);
+      const maxTxtW = W * 0.46 - Math.round(W * 0.022);
       (data.inclui || []).forEach((item) => {
         ctx.fillStyle = color; ctx.font = `600 ${itemFs}px sans-serif`;
         ctx.fillText("\u2022", ilx, iy2);
         ctx.fillStyle = "#e2e8f0";
         ctx.font = `600 ${itemFs}px sans-serif`;
         iy2 = wrapText(ctx, sanitize(item), txtX2, iy2, maxTxtW, lineH2);
+        iy2 += itemGap;
       });
       if (data.bagagem && /sem mala despachada/i.test(data.bagagem)) {
         ctx.fillStyle = "#ffaa00"; ctx.font = `600 ${Math.round(H * 0.015 * sc)}px sans-serif`;
@@ -515,9 +517,9 @@ export function drawStory(
       ctx.textAlign = "right";
       ctx.fillStyle = "#94a3b8"; ctx.font = `${Math.round(H * 0.012 * sc)}px sans-serif`;
       ctx.fillText("A PARTIR DE", prx, py2); py2 += Math.round(H * 0.036 * sc);
-      ctx.fillStyle = accent; ctx.font = `900 ${Math.round(H * 0.038 * sc)}px sans-serif`;
+      ctx.fillStyle = accent; ctx.font = `900 ${Math.round(H * 0.034 * sc)}px sans-serif`;
       ctx.fillText(`${data.parcelas}x`, prx, py2); py2 += Math.round(H * 0.048 * sc);
-      ctx.fillStyle = "#fff"; ctx.font = `900 ${Math.round(H * 0.050 * sc)}px sans-serif`;
+      ctx.fillStyle = "#fff"; ctx.font = `900 ${Math.round(H * 0.042 * sc)}px sans-serif`;
       ctx.fillText(`R$ ${data.precoParcela.replace("R$ ", "")}`, prx, py2); py2 += Math.round(H * 0.026 * sc);
       if (data.precoAVista) {
         ctx.fillStyle = "#e2e8f0"; ctx.font = `600 ${Math.round(H * 0.013 * sc)}px sans-serif`;
