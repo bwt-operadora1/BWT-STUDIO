@@ -95,7 +95,7 @@ export default function LaminaEditor({ data, initialFeedState, initialStoryState
 
   // Canvas display dimensions
   const CANVAS_W = format === "feed" ? 540 : 432;
-  const CANVAS_H = format === "feed" ? 540 : Math.round((432 * 1350) / 1080);
+  const CANVAS_H = format === "feed" ? 540 : Math.round((432 * 1920) / 1080);
 
   const bgImage = customBgEl ?? defaultImageEl;
 
@@ -272,7 +272,7 @@ export default function LaminaEditor({ data, initialFeedState, initialStoryState
     try {
       const exportCanvas = document.createElement("canvas");
       const exportW = 1080;
-      const exportH = format === "feed" ? 1080 : 1350;
+      const exportH = format === "feed" ? 1080 : 1920;
       const scaleFactor = exportW / CANVAS_W;
       const scaledState = scaleLaminaState(curState, CANVAS_W, exportW);
       const fn = format === "feed" ? drawFeed : drawStory;

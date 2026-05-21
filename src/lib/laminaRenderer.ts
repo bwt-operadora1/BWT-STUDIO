@@ -1,6 +1,6 @@
 /**
  * laminaRenderer.ts
- * All canvas drawing logic for Feed (1080×1080) and Story (1080×1350) lâminas.
+ * All canvas drawing logic for Feed (1080×1080) and Story (1080×1920) lâminas.
  * Consumed by both CanvasPreview (thumbnails) and LaminaEditor (full editor).
  */
 
@@ -321,7 +321,7 @@ function highlightIfNeeded(
   }
 }
 
-// ─── drawStory (1080 × 1350) ──────────────────────────────────────────────────
+// ─── drawStory (1080 × 1920) ──────────────────────────────────────────────────
 
 export function drawStory(
   canvas: HTMLCanvasElement,
