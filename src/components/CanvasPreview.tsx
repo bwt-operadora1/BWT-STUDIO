@@ -20,8 +20,8 @@ interface CanvasPreviewProps {
 const FEED_W = 1080, FEED_H = 1080;
 const FW = 320, FH = 320;
 
-const STORY_W = 1080, STORY_H = 1350;
-const SW = 320, SH = Math.round((320 * 1350) / 1080);
+const STORY_W = 1080, STORY_H = 1920;
+const SW = 320, SH = Math.round((320 * 1920) / 1080);
 const STORY_SCALE = SW / STORY_W; // CSS transform scale factor
 
 // Shimmer skeleton for canvas loading state
@@ -238,7 +238,7 @@ const CanvasPreview = ({ data, onDataChange }: CanvasPreviewProps) => {
             <div className="w-full flex items-center justify-between">
               <div>
                 <p className="font-semibold text-sm">Story</p>
-                <p className="text-xs text-muted-foreground">1080 × 1350 px</p>
+                <p className="text-xs text-muted-foreground">1080 × 1920 px</p>
               </div>
             </div>
 
