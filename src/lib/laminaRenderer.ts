@@ -481,12 +481,14 @@ export function drawStory(
       const sepY2 = subY2 + Math.round(H * 0.020);
       const ilx = bodyX + es.dx, ily = sepY2 + Math.round(H * 0.022) + es.dy;
       const color = es.color || "#a78bfa";
-      let iy2 = ily + Math.round(H * 0.028);
-      const itemFs = Math.round(H * 0.016 * sc);
+      let iy2 = ily + Math.round(H * 0.030);
+      const itemFs = Math.round(H * 0.0145 * sc);
       const lineH2 = Math.round(itemFs * 1.35);
-      const itemGap = Math.round(itemFs * 0.45);
-      const txtX2 = ilx + Math.round(W * 0.022);
-      const maxTxtW = W * 0.46 - Math.round(W * 0.022);
+      const itemGap = Math.round(itemFs * 0.55);
+      const txtX2 = ilx + Math.round(W * 0.024);
+      // Hard right boundary: leave room for price column on the right
+      const inclRightLimit = W * 0.56;
+      const maxTxtW = inclRightLimit - txtX2;
       (data.inclui || []).forEach((item) => {
         ctx.fillStyle = color; ctx.font = `600 ${itemFs}px sans-serif`;
         ctx.fillText("\u2022", ilx, iy2);
@@ -515,12 +517,20 @@ export function drawStory(
       const prx = px2 + es.dx;
       const accent = es.color || "#a78bfa";
       ctx.textAlign = "right";
-      ctx.fillStyle = "#94a3b8"; ctx.font = `${Math.round(H * 0.012 * sc)}px sans-serif`;
-      ctx.fillText("A PARTIR DE", prx, py2); py2 += Math.round(H * 0.036 * sc);
-      ctx.fillStyle = accent; ctx.font = `900 ${Math.round(H * 0.034 * sc)}px sans-serif`;
-      ctx.fillText(`${data.parcelas}x`, prx, py2); py2 += Math.round(H * 0.048 * sc);
-      ctx.fillStyle = "#fff"; ctx.font = `900 ${Math.round(H * 0.042 * sc)}px sans-serif`;
-      ctx.fillText(`R$ ${data.precoParcela.replace("R$ ", "")}`, prx, py2); py2 += Math.round(H * 0.026 * sc);
+      ctx.fillStyle = "#94a3b8"; ctx.font = `${Math.round(H * 0.011 * sc)}px sans-serif`;
+      ctx.fillText("A PARTIR DE", prx, py2); py2 += Math.round(H * 0.032 * sc);
+      ctx.fillStyle = accent; ctx.font = `900 ${Math.round(H * 0.028 * sc)}px sans-serif`;
+      ctx.fillText(`${data.parcelas}x`, prx, py2); py2 += Math.round(H * 0.042 * sc);
+      // Auto-shrink price to fit inside the right column (max width ~ W*0.40)
+      const priceMaxW = W * 0.40;
+      let priceFs = Math.round(H * 0.036 * sc);
+      const priceTxt = `R$ ${data.precoParcela.replace("R$ ", "")}`;
+      ctx.font = `900 ${priceFs}px sans-serif`;
+      while (ctx.measureText(priceTxt).width > priceMaxW && priceFs > 28) {
+        priceFs -= 2; ctx.font = `900 ${priceFs}px sans-serif`;
+      }
+      ctx.fillStyle = "#fff";
+      ctx.fillText(priceTxt, prx, py2); py2 += Math.round(H * 0.024 * sc);
       if (data.precoAVista) {
         ctx.fillStyle = "#e2e8f0"; ctx.font = `600 ${Math.round(H * 0.013 * sc)}px sans-serif`;
         ctx.fillText(`Ou ${data.precoAVista}`, prx, py2); py2 += Math.round(H * 0.018 * sc);
