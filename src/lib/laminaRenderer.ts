@@ -475,10 +475,10 @@ export function drawStory(
       const color = es.color || "#a78bfa";
       ctx.fillStyle = "#94a3b8"; ctx.font = `700 ${Math.round(H * 0.016 * sc)}px sans-serif`;
       ctx.textAlign = "left"; ctx.fillText("INCLUI", ilx, ily);
-      let iy2 = ily + Math.round(H * 0.030);
-      const itemFs = Math.round(H * 0.0148 * sc);
-      const lineH2 = Math.round(itemFs * 1.28);
-      const itemGap = Math.round(itemFs * 0.30);
+      let iy2 = ily + Math.round(H * 0.026);
+      const itemFs = Math.round(H * 0.0138 * sc);
+      const lineH2 = Math.round(itemFs * 1.24);
+      const itemGap = Math.round(itemFs * 0.22);
       const txtX2 = ilx + Math.round(W * 0.024);
       const maxTxtW = Math.max(W * 0.32, storyInclRight - txtX2);
       const inclItems = (data.inclui || []).slice(0, 6);
