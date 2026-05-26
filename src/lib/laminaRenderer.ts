@@ -434,7 +434,7 @@ export function drawStory(
   const storyInclRight = Math.round(W * 0.55);
   const storyPriceLeft = Math.round(W * 0.66);
   let storySepY = bodyY + Math.round(H * 0.13);
-  let storyContentY = storySepY + Math.round(H * 0.052);
+  let storyContentY = storySepY + Math.round(H * 0.028);
 
   // Destination
   { const es = getStyle(st, "destination");
@@ -461,7 +461,7 @@ export function drawStory(
       highlightIfNeeded(ctx, { x: bx, y: by, w: W * 0.90, h: boundsH }, "destination", "Destino", W, opts);
       const sepY = subY + Math.round(H * 0.026);
       storySepY = sepY;
-      storyContentY = sepY + Math.round(H * 0.052);
+      storyContentY = sepY + Math.round(H * 0.028);
       ctx.strokeStyle = "rgba(167,139,250,0.28)"; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(bx, sepY); ctx.lineTo(px2, sepY); ctx.stroke();
     }
@@ -475,13 +475,14 @@ export function drawStory(
       const color = es.color || "#a78bfa";
       ctx.fillStyle = "#94a3b8"; ctx.font = `700 ${Math.round(H * 0.016 * sc)}px sans-serif`;
       ctx.textAlign = "left"; ctx.fillText("INCLUI", ilx, ily);
-      let iy2 = ily + Math.round(H * 0.038);
-      const itemFs = Math.round(H * 0.016 * sc);
-      const lineH2 = Math.round(itemFs * 1.38);
-      const itemGap = Math.round(itemFs * 0.62);
+      let iy2 = ily + Math.round(H * 0.030);
+      const itemFs = Math.round(H * 0.0148 * sc);
+      const lineH2 = Math.round(itemFs * 1.28);
+      const itemGap = Math.round(itemFs * 0.30);
       const txtX2 = ilx + Math.round(W * 0.024);
       const maxTxtW = Math.max(W * 0.32, storyInclRight - txtX2);
-      (data.inclui || []).forEach((item) => {
+      const inclItems = (data.inclui || []).slice(0, 6);
+      inclItems.forEach((item) => {
         ctx.fillStyle = color; ctx.font = `600 ${itemFs}px sans-serif`;
         ctx.fillText("\u2022", ilx, iy2);
         ctx.fillStyle = "#e2e8f0";
