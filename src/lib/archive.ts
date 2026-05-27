@@ -78,9 +78,9 @@ export function saveArchiveEntry(data: TravelData, output?: string): ArchiveEntr
   return persistArchiveEntries(list);
 }
 
-// Writes directly to content_archive using the typed Supabase client.
-// Merges cloud outputs with local so concurrent users on the same
-// orçamento don't overwrite each other's activity.
+// Delegates to the archive-records edge function so the read+merge+upsert
+// happens atomically server-side, avoiding races when multiple outputs are
+// saved in quick succession.
 async function syncToCloud(entry: ArchiveEntry) {
   try {
     const { supabase } = await import("@/integrations/supabase/client");
