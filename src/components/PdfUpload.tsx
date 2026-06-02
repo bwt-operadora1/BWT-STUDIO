@@ -1,8 +1,7 @@
 import { Upload, Sparkles, AlertCircle, ImageIcon, Film, MessageSquare } from "lucide-react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { TravelData, SAMPLE_DATA } from "@/types/travel";
-import { extractTextFromPdf } from "@/lib/pdfParser";
-import { parseWithGemini } from "@/lib/geminiParser";
+import { extractTextFromPdf, parseTravelData } from "@/lib/pdfParser";
 
 interface PdfUploadProps {
   onDataExtracted: (data: TravelData) => void;
@@ -51,7 +50,7 @@ const PdfUpload = ({ onDataExtracted }: PdfUploadProps) => {
         setError("Não foi possível extrair texto do PDF. O arquivo pode ser uma imagem escaneada.");
         setIsProcessing(false); return;
       }
-      const data = await parseWithGemini(text);
+      const data = parseTravelData(text);
       localStorage.setItem("bwt-session", JSON.stringify(data));
       onDataExtracted(data);
     } catch (err) {
@@ -116,7 +115,7 @@ const PdfUpload = ({ onDataExtracted }: PdfUploadProps) => {
               Transforme orçamentos Infotera em<br />materiais de marketing prontos
             </p>
             <p className="text-xs" style={{ color: "rgba(180,150,220,0.5)" }}>
-              Lâminas · Reels · Copy — em segundos, com IA
+              Lâminas · Reels · Copy — prontos em segundos
             </p>
           </div>
         </div>
@@ -169,10 +168,10 @@ const PdfUpload = ({ onDataExtracted }: PdfUploadProps) => {
                 />
                 <div>
                   <p className="font-semibold text-sm" style={{ color: "#fff" }}>
-                    {fileName ? `Analisando ${fileName}…` : "Analisando com IA…"}
+                    {fileName ? `Analisando ${fileName}…` : "Analisando orçamento…"}
                   </p>
                   <p className="text-xs mt-1" style={{ color: "rgba(180,150,220,0.55)" }}>
-                    Gemini interpretando orçamento e gerando conteúdo
+                    Extraindo os dados do orçamento Infotera
                   </p>
                 </div>
               </div>

@@ -123,8 +123,6 @@ ${agencia}`;
     });
   };
 
-  const hasAI = !!data.marketing;
-
   const TIPO_COLORS: Record<string, string> = {
     Hook: "#f59e0b",
     Produto: "#9333EA",
@@ -135,16 +133,6 @@ ${agencia}`;
 
   return (
     <div className="space-y-8">
-      {hasAI && (
-        <div
-          className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg"
-          style={{ background: "rgba(147,51,234,0.08)", border: "0.5px solid rgba(147,51,234,0.3)", color: "#9333EA" }}
-        >
-          ✨ Conteúdo gerado com Gemini AI — personalizado para {data.destino}
-          {data.agencia ? ` · Agência: ${data.agencia}` : ""}
-        </div>
-      )}
-
       {/* ── Script Reels ── */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">

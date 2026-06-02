@@ -98,12 +98,7 @@ export function parseTravelData(text: string): TravelData {
   const { dataInicio, dataFim } = extractDatas(clean, lines);
 
   // ── Companhia Aérea ──
-  const ciaMatch = clean.match(/(?:Voo\s+Operado\s+por|Operado\s+por)\s+([\w\s]+?)(?:\s+Classe|\s+Voo|\s*$)/i);
-  const companhiaAerea = ciaMatch
-    ? ciaMatch[1].trim()
-    : extractField(clean, [
-        /(GOL|LATAM|Azul|TAP|American Airlines|Copa Airlines|Avianca|JetBlue|Emirates|Delta|United)/i,
-      ]);
+  const companhiaAerea = extractCompanhiaAerea(clean);
 
   // ── Campanha ──
   const campanhaMatch = clean.match(/Operação\s+([\w\s\-]+?)(?:\s*[-–]|\s+Nº|\s+\d|$)/i);
@@ -481,6 +476,72 @@ function extractOrigemVoo(clean: string): string | undefined {
       if (city) return `${city} (${code})`;
     }
   }
+  return undefined;
+}
+
+// Known carriers, ordered most-specific/multi-word first so e.g. "Royal Air
+// Maroc" is matched before bare tokens like "TAP". Matching is word-boundary
+// based (see extractCompanhiaAerea) so substrings inside other words — the bug
+// where "TAP" matched inside unrelated text — can no longer produce a hit.
+const KNOWN_AIRLINES: string[] = [
+  // Multi-word / specific names first
+  "Royal Air Maroc", "Royal Jordanian",
+  "TAP Air Portugal",
+  "American Airlines", "Copa Airlines", "United Airlines", "Delta Air Lines",
+  "Aerolíneas Argentinas", "Aerolineas Argentinas",
+  "Air France", "Air Canada", "Air Europa", "Air China",
+  "British Airways", "Turkish Airlines", "Qatar Airways", "Ethiopian Airlines",
+  "Singapore Airlines", "Japan Airlines", "Korean Air", "Cathay Pacific",
+  "Sky Airline", "South African Airways", "Cabo Verde Airlines",
+  "Boliviana de Aviación", "Boliviana de Aviacion",
+  "Aeroméxico", "Aeromexico",
+  // Single distinctive tokens last
+  "LATAM", "Avianca", "Emirates", "Etihad", "Iberia", "Lufthansa", "KLM",
+  "Swiss", "Vueling", "JetBlue", "JetSmart", "Arajet", "Wingo", "Conviasa",
+  "Paranair", "Amaszonas", "Qantas", "Azul", "GOL", "TAP", "Copa",
+];
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function cleanAirlineName(raw: string): string {
+  return raw
+    .replace(/[^ -ɏḀ-ỿ]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+(?:em|classe|econ\w*|executiva|voo|de\s+ida|ida|volta)$/i, "")
+    .replace(/[,;.]+$/, "")
+    .trim();
+}
+
+function extractCompanhiaAerea(clean: string): string | undefined {
+  // Pattern 1: known carrier names, word-boundary matched (specific names first).
+  // This is the most precise path and is tried first so recognised airlines are
+  // never confused with an incidental token elsewhere in the document.
+  for (const airline of KNOWN_AIRLINES) {
+    const re = new RegExp(`\\b${escapeRegExp(airline)}\\b`, "i");
+    if (re.test(clean)) return airline;
+  }
+
+  // Pattern 2: explicit operator phrase — catches carriers not in the list.
+  // Capture up to 3 letter-words to avoid running into flight numbers / details.
+  const operado = clean.match(
+    /(?:Voo\s+)?Operado\s+por\s+([A-Za-zÀ-ú][A-Za-zÀ-ú&.\-]*(?:\s+[A-Za-zÀ-ú][A-Za-zÀ-ú&.\-]*){0,2})/i,
+  );
+  if (operado) {
+    const name = cleanAirlineName(operado[1]);
+    if (name.length >= 3) return name;
+  }
+
+  // Pattern 3: labelled field "Cia Aérea: X" / "Companhia Aérea: X"
+  const labelled = clean.match(
+    /(?:Cia\.?\s*A[ée]rea|Companhia\s+A[ée]rea)\s*[:\-]\s*([A-Za-zÀ-ú][A-Za-zÀ-ú&.\-]*(?:\s+[A-Za-zÀ-ú][A-Za-zÀ-ú&.\-]*){0,2})/i,
+  );
+  if (labelled) {
+    const name = cleanAirlineName(labelled[1]);
+    if (name.length >= 3) return name;
+  }
+
   return undefined;
 }
 

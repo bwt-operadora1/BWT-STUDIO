@@ -504,10 +504,23 @@ export function getDestinationSearchSpec(
   push(`${ctx.name} ${ctx.country}`);
   if (ctx.country) push(ctx.name);
 
-  // Validation tokens: name + aliases + country + significant keyword words
+  // Validation tokens are PLACE identifiers only (name + aliases + the specific
+  // location words of the curated keyword). We deliberately exclude the country
+  // and generic travel/landscape words: if "beach", "tropical" or "brasil" were
+  // accepted, virtually any stock photo would pass validation and we'd serve
+  // random images. Requiring an actual place token keeps photos on-destination.
   const STOPWORDS = new Set([
+    // connectors / articles
     "de", "do", "da", "dos", "das", "e", "the", "of", "and",
-    "a", "an", "el", "la", "los", "las", "y",
+    "a", "an", "el", "la", "los", "las", "y", "del",
+    // generic travel / landscape terms — too broad to identify a destination
+    "praia", "praias", "beach", "beaches", "viagem", "viagens", "travel",
+    "trip", "tour", "tours", "turismo", "tourism", "ferias", "vacation",
+    "holiday", "paradise", "tropical", "resort", "hotel", "hoteis", "sol",
+    "sun", "sunset", "sunrise", "mar", "sea", "ocean", "oceano", "city",
+    "cidade", "skyline", "downtown", "centro", "historico", "walled", "nature",
+    "natureza", "montanha", "montanhas", "mountain", "ilha", "island", "dunas",
+    "aerea", "aereo", "voo", "view", "landscape", "paisagem",
   ]);
   const tokenSet = new Set<string>();
   const addToken = (raw: string) => {
@@ -521,7 +534,6 @@ export function getDestinationSearchSpec(
     a.split(/\s+/).forEach(addToken);
   });
   ctx.imageKeyword.split(/\s+/).forEach(addToken);
-  if (ctx.country) addToken(ctx.country);
 
   return {
     searchTerms: terms,

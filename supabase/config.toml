@@ -1,7 +1,4 @@
-project_id = "pvtsykqjpschiexxprth"
-
-[functions.parse-pdf]
-verify_jwt = false
+project_id = "dzzeimdnrbkeowzahuit"
 
 [functions.search-images]
 verify_jwt = false

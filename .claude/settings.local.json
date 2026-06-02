@@ -18,7 +18,9 @@
       "Bash(npx vite:*)",
       "Bash(command -v git)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ricardo.baggio\\\\Documents\\\\GitHub\\\\bwt-content-spark\" -Force)",
-      "Bash(Select-Object Name, PSIsContainer)"
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\ricardo.baggio\\\\Documents\\\\GitHub\\\\bwt-content-spark\" -Hidden -Include \".lovable*\", \"lovable.*\" -ErrorAction SilentlyContinue)",
+      "PowerShell(npx tsc --noEmit -p tsconfig.app.json; Write-Output \"EXIT=$LASTEXITCODE\")"
     ]
   }
 }

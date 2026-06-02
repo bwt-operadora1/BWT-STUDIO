@@ -94,7 +94,7 @@ serve(async (req) => {
     const validated: PexelsPhoto[] = [];
     const seenIds = new Set<string>();
     let triedTerms: string[] = [];
-    let lastTermPhotos: PexelsPhoto[] = [];
+    let firstTermPhotos: PexelsPhoto[] = [];
 
     for (const query of queries) {
       triedTerms.push(query);
@@ -108,7 +108,8 @@ serve(async (req) => {
       }
       const json = await resp.json();
       const photos: PexelsPhoto[] = json.photos ?? [];
-      lastTermPhotos = photos;
+      // Remember the FIRST (most specific) query's raw results for fallback.
+      if (triedTerms.length === 1) firstTermPhotos = photos;
 
       for (const p of photos) {
         const id = String((p as any).id ?? p.url);
@@ -120,14 +121,13 @@ serve(async (req) => {
       if (validated.length >= count * 4) break; // enough to shuffle from
     }
 
-    // If validation produced nothing, fall back to the LAST term's raw
-    // results (better a thematic shot than a random placeholder). This still
-    // respects the most-generic curated query rather than the dangerous
-    // "beach travel" world-wide pool.
+    // If validation produced nothing, fall back to the MOST SPECIFIC query's
+    // raw results (the curated keyword), never the generic last term. A
+    // thematic shot of the right place beats a random globally-popular photo.
     let pool = validated;
     let strict = true;
     if (pool.length === 0) {
-      pool = lastTermPhotos;
+      pool = firstTermPhotos;
       strict = false;
     }
 

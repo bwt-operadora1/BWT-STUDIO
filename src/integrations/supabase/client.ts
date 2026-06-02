@@ -2,8 +2,13 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? 'https://placeholder.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? 'placeholder-key';
+// Lovable Cloud project credentials. These are hardcoded on purpose (the anon
+// key is a public, RLS-protected key that ships in every Supabase client
+// bundle) so the deployed build always connects — relying on import.meta.env
+// here left production on a placeholder URL, so edge functions were never
+// invoked and image search silently fell back to random picsum photos.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? 'https://dzzeimdnrbkeowzahuit.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6emVpbWRucmJrZW93emFodWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NjYwMDcsImV4cCI6MjA5MjU0MjAwN30.1ne6B78qrhuTH8dQctdwAfZCetKejv01ShYWndXffZA';
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
