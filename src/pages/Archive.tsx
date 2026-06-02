@@ -264,14 +264,7 @@ const Archive = () => {
                         )}
                       </div>
 
-                      <div className="mt-3 pt-3 border-t flex items-baseline justify-between">
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</span>
-                        <span className="font-display font-bold text-sm" style={{ color: "#9333EA" }}>
-                          {entry.data.precoTotal}
-                        </span>
-                      </div>
-
-                      <p className="text-[10px] text-muted-foreground mt-2">
+                      <p className="text-[10px] text-muted-foreground mt-3 pt-3 border-t">
                         Salvo em {new Date(entry.savedAt).toLocaleString("pt-BR")}
                       </p>
                     </Card>

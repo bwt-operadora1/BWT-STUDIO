@@ -23,6 +23,13 @@ const compactTravelDataForArchive = (data: TravelData): TravelData => {
     else delete compact.videoSceneImageUrls;
   }
 
+  // Prices are never stored in the (publicly-readable) archive — the archive is
+  // a usage log of which orçamentos were processed, not a price database.
+  compact.precoTotal = "";
+  compact.precoPorPessoa = "";
+  compact.precoParcela = "";
+  compact.precoAVista = "";
+
   return compact;
 };
 

@@ -49,6 +49,14 @@ serve(async (req) => {
 
       const outputs = Array.from(new Set([...(existing?.outputs ?? entry.outputs ?? []), output].filter(Boolean)));
 
+      // Prices are never stored in the archive. Strip them from the JSONB blob
+      // (guards against stale clients) and null the dedicated columns so any
+      // previously-stored price is cleared on the next upsert.
+      const sanitizedData: Record<string, unknown> = { ...data };
+      for (const k of ["precoTotal", "precoPorPessoa", "precoParcela", "precoAVista"]) {
+        delete sanitizedData[k];
+      }
+
       const payload = {
         signature,
         destination: String(data.destino ?? ""),
@@ -59,12 +67,12 @@ serve(async (req) => {
         duration: data.duracao ? String(data.duracao) : null,
         start_date: data.dataInicio ? String(data.dataInicio) : null,
         end_date: data.dataFim ? String(data.dataFim) : null,
-        total_price: data.precoTotal ? String(data.precoTotal) : null,
-        installment_price: data.precoParcela ? String(data.precoParcela) : null,
-        cash_price: data.precoAVista ? String(data.precoAVista) : null,
+        total_price: null,
+        installment_price: null,
+        cash_price: null,
         outputs,
         included_items: Array.isArray(data.inclui) ? data.inclui : [],
-        data,
+        data: sanitizedData,
       };
 
       const { error } = await supabase.from("content_archive").upsert(payload, { onConflict: "signature" });
