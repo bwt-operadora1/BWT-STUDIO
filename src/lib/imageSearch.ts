@@ -49,7 +49,8 @@ export async function fetchDestinationImages(
 
   if (searchTerms.length > 0) {
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
+      const { getCloudClient } = await import("@/lib/cloudClient");
+      const supabase = await getCloudClient();
       const { data, error } = await supabase.functions.invoke("search-images", {
         body: { searchTerms, validationTokens, locale, count },
       });
