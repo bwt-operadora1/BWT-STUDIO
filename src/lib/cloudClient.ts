@@ -3,7 +3,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 const BACKEND_URL = "https://pvtsykqjpschiexxprth.supabase.co";
 const BACKEND_PUBLISHABLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InB2dHN5a3FqcHNjaGlleHhwcnRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjA5MzYsImV4cCI6MjA5MTI5NjkzNn0.tZy0OwV0_969R5SgG7jLIajYp3e2TKPEY7IIPgkhElo";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2dHN5a3FqcHNjaGlleHhwcnRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjA5MzYsImV4cCI6MjA5MTI5NjkzNn0.tZy0OwV0_969R5SgG7jLIajYp3e2TKPEY7IIPgkhElo";
 
 let clientPromise: Promise<SupabaseClient<Database>> | null = null;
 
