@@ -522,17 +522,43 @@ export function getDestinationSearchSpec(
     "natureza", "montanha", "montanhas", "mountain", "ilha", "island", "dunas",
     "aerea", "aereo", "voo", "view", "landscape", "paisagem",
   ]);
+  // Inherently ambiguous tokens — chiefly nationalities/languages that Pexels
+  // tags onto unrelated photos (Provence lavender slugged "france"/"francais",
+  // tulips tagged "France"), plus month-like words. These are NEVER emitted as
+  // validation tokens, no matter which name/alias they come from. This is the
+  // exact class of bug that let a French flower photo pass for Maceió, whose
+  // alias "praia do francês" had been split into the loose token "frances".
+  // (Accent-stripped, lowercase — compared against normalizeToken output.)
+  const AMBIGUOUS = new Set([
+    "frances", "francesa", "francais", "franca", "france",
+    "ingles", "inglesa", "england",
+    "espanhol", "espanhola", "espanha", "spain",
+    "italiano", "italiana", "italia", "italy",
+    "americano", "americana", "america",
+    "portugues", "portuguesa",
+    "alemao", "alema", "alemanha", "germany",
+    "janeiro",
+    // Common-word collisions: validation is a substring match, so short
+    // dictionary-word aliases match unrelated photos ("male" → "female"/people).
+    // Safe to drop here because each such destination has stronger tokens too
+    // (Maldivas → maldivas/maldives/overwater/bungalow).
+    "male",
+  ]);
   const tokenSet = new Set<string>();
   const addToken = (raw: string) => {
     const t = normalizeToken(raw);
-    if (t.length >= 3 && !STOPWORDS.has(t)) tokenSet.add(t);
+    if (t.length >= 3 && !STOPWORDS.has(t) && !AMBIGUOUS.has(t)) tokenSet.add(t);
   };
+  // Destination name — full string + individual words (the core identity).
   addToken(ctx.name);
   ctx.name.split(/\s+/).forEach(addToken);
-  ctx.aliases.forEach((a) => {
-    addToken(a);
-    a.split(/\s+/).forEach(addToken);
-  });
+  // Aliases — add ONLY the full phrase, never split into words. Splitting a
+  // compound alias ("praia do francês", "barra de são miguel") yields fragile
+  // single-word tokens ("frances", "barra", "miguel") that match unrelated
+  // photos. The whole phrase as one token is safe; recall is carried by the
+  // name + keyword tokens and single-word aliases (which are added as-is).
+  ctx.aliases.forEach((a) => addToken(a));
+  // Significant words of the curated keyword (already place-specific).
   ctx.imageKeyword.split(/\s+/).forEach(addToken);
 
   return {

@@ -28,16 +28,28 @@ interface PexelsPhoto {
 }
 
 /**
- * Validate a photo against destination tokens. A photo is accepted if at
- * least one validation token (accent-stripped, lowercase) appears in either
- * its `alt` text or its Pexels page URL (which is a slug of the title).
+ * Validate a photo against destination tokens. A photo is accepted if at least
+ * one validation token (accent-stripped, lowercase) appears in its `alt` text
+ * or Pexels page URL slug — matched as a WHOLE WORD/PHRASE, not a substring.
+ *
+ * Substring matching was the source of cross-destination false positives:
+ * "rio" matched "inteRIOr", "male" (Malé) matched "feMALE", "natal" matched
+ * "preNATAL", etc. We normalise both sides to space-separated alphanumeric
+ * words and require the token to sit on word boundaries. As a bonus this also
+ * lets multi-word phrase tokens ("praia do frances") match hyphenated URL
+ * slugs ("praia-do-frances"), which a raw substring check would have missed.
  */
+function normalizeHaystack(s: string): string {
+  return ` ${stripAccents(s.toLowerCase()).replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim()} `;
+}
+
 function isPhotoRelevant(photo: PexelsPhoto, tokens: string[]): boolean {
   if (tokens.length === 0) return true; // no filter requested
-  const haystack = stripAccents(
-    `${photo.alt ?? ""} ${photo.url ?? ""}`.toLowerCase(),
-  );
-  return tokens.some((t) => t && haystack.includes(t));
+  const haystack = normalizeHaystack(`${photo.alt ?? ""} ${photo.url ?? ""}`);
+  return tokens.some((t) => {
+    const tok = stripAccents((t ?? "").toLowerCase()).replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+    return tok.length > 0 && haystack.includes(` ${tok} `);
+  });
 }
 
 function shuffle<T>(arr: T[]): T[] {
