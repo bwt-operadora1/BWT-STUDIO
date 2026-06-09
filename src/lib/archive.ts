@@ -90,7 +90,8 @@ export function saveArchiveEntry(data: TravelData, output?: string): ArchiveEntr
 // saved in quick succession.
 async function syncToCloud(entry: ArchiveEntry) {
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
+    const { getCloudClient } = await import("@/lib/cloudClient");
+    const supabase = await getCloudClient();
     const lastOutput = entry.outputs?.[entry.outputs.length - 1];
     const { error } = await supabase.functions.invoke("archive-records", {
       body: {
@@ -108,7 +109,8 @@ async function syncToCloud(entry: ArchiveEntry) {
 export async function loadArchiveEntriesFromCloud(): Promise<ArchiveEntry[]> {
   const local = loadArchiveEntries();
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
+    const { getCloudClient } = await import("@/lib/cloudClient");
+    const supabase = await getCloudClient();
     const { data, error } = await supabase
       .from("content_archive")
       .select("id, updated_at, data, outputs")
@@ -135,7 +137,8 @@ export async function loadArchiveEntriesFromCloud(): Promise<ArchiveEntry[]> {
 
 export async function deleteArchiveEntry(id: string) {
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
+    const { getCloudClient } = await import("@/lib/cloudClient");
+    const supabase = await getCloudClient();
     await supabase.functions.invoke("archive-records", {
       body: { action: "delete", id },
     });
@@ -146,7 +149,8 @@ export async function deleteArchiveEntry(id: string) {
 
 export async function clearArchiveEntries() {
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
+    const { getCloudClient } = await import("@/lib/cloudClient");
+    const supabase = await getCloudClient();
     await supabase.functions.invoke("archive-records", {
       body: { action: "clear" },
     });
