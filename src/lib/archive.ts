@@ -107,7 +107,6 @@ async function syncToCloud(entry: ArchiveEntry) {
 }
 
 export async function loadArchiveEntriesFromCloud(): Promise<ArchiveEntry[]> {
-  const local = loadArchiveEntries();
   try {
     const { getCloudClient } = await import("@/lib/cloudClient");
     const supabase = await getCloudClient();
@@ -116,7 +115,7 @@ export async function loadArchiveEntriesFromCloud(): Promise<ArchiveEntry[]> {
       .select("id, updated_at, data, outputs")
       .order("updated_at", { ascending: false });
 
-    if (error || !Array.isArray(data)) return local;
+    if (error || !Array.isArray(data)) return loadArchiveEntries();
 
     const cloudEntries: ArchiveEntry[] = data.map((row) => ({
       id: row.id,
@@ -125,13 +124,15 @@ export async function loadArchiveEntriesFromCloud(): Promise<ArchiveEntry[]> {
       outputs: row.outputs ?? [],
     }));
 
-    // Preserve local-only entries not yet synced to cloud
-    const cloudIds = new Set(cloudEntries.map((e) => e.id));
-    const localOnly = local.filter((e) => !cloudIds.has(e.id));
-    const merged = [...cloudEntries, ...localOnly].sort((a, b) => b.savedAt - a.savedAt);
-    return persistArchiveEntries(merged);
+    // The cloud is the single source of truth for the archive — browser-local
+    // entries are NOT merged in. Merging local caused per-machine count drift
+    // (each browser kept its own local copies, so one PC showed 32 and another
+    // 23). We just sort the cloud rows and refresh the localStorage cache, which
+    // now serves only as an offline fallback when the cloud read fails.
+    const sorted = cloudEntries.sort((a, b) => b.savedAt - a.savedAt);
+    return persistArchiveEntries(sorted);
   } catch {
-    return local;
+    return loadArchiveEntries();
   }
 }
 
