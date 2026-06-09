@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ARCHIVE_STORAGE_KEY, ArchiveEntry, clearArchiveEntries, deleteArchiveEntry, loadArchiveEntriesFromCloud } from "@/lib/archive";
+import ArchiveAnalytics from "@/components/ArchiveAnalytics";
 import {
   Plane, Hotel, Building2, Trash2, Search, Calendar,
   Image, Video, FileText, Instagram, MessageCircle, Mail,
@@ -209,6 +210,9 @@ const Archive = () => {
                 </Card>
               ))}
             </div>
+
+            {/* Visualizations */}
+            <ArchiveAnalytics entries={entries} />
 
             {grouped.length === 0 ? (
               <p className="text-center py-16 text-sm text-muted-foreground">
