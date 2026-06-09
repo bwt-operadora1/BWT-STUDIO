@@ -48,25 +48,20 @@ export async function loadImageNoTaint(url: string): Promise<HTMLImageElement | 
   //    fallback because that can succeed visually but still taint the canvas,
   //    breaking toBlob() at export time.
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
-    const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL;
-    if (SUPABASE_URL) {
-      const proxyUrl = `${SUPABASE_URL}/functions/v1/image-proxy?url=${encodeURIComponent(url)}`;
-      const res = await fetch(proxyUrl);
-      if (res.ok) {
-        const blob = await res.blob();
-        if (blob.size > 0) {
-          const objUrl = URL.createObjectURL(blob);
-          const img = await loadDirect(objUrl);
-          if (img) return img;
-          URL.revokeObjectURL(objUrl);
-        }
-      } else {
-        console.warn("[loadImageNoTaint] proxy non-ok", res.status);
+    const { getFunctionUrl } = await import("@/lib/cloudClient");
+    const proxyUrl = `${getFunctionUrl("image-proxy")}?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob.size > 0) {
+        const objUrl = URL.createObjectURL(blob);
+        const img = await loadDirect(objUrl);
+        if (img) return img;
+        URL.revokeObjectURL(objUrl);
       }
+    } else {
+      console.warn("[loadImageNoTaint] proxy non-ok", res.status);
     }
-    // suppress unused supabase import warning
-    void supabase;
   } catch (err) {
     console.warn("[loadImageNoTaint] proxy failed", err);
   }
