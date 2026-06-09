@@ -60,7 +60,7 @@ export interface DrawOpts {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 export const COND_PADRAO =
-  "Valores por pessoa em Reais. Sujeito a disponibilidade e alterações sem prévio aviso. Parcelamento em até 10x, respeitando parcela mínima de R$ 150,00. Nos reservamos o direito a correções de possíveis erros de digitação. Consulte regras gerais em www.bwtoperadora.com.br";
+  "Valores por pessoa em Reais. Sujeito a disponibilidade e alterações sem prévio aviso. Parcelamento em até 10x, respeitando parcela mínima de R$ 150,00. Gratuidade crianças quando mencionado, se referente somente a parte de hospedagem e pode variar conforme categoria de quarto, dividindo apartamento com 2 adultos pagantes. Nos reservamos o direito a correções de possíveis erros de digitação. Consulte regras gerais em www.bwtoperadora.com.br";
 
 export const IMAGE_DISCLAIMER =
   "Imagens meramente ilustrativas e podem não representar o produto ou destino vendido.";
@@ -185,6 +185,64 @@ function measureWrappedLines(ctx: CanvasRenderingContext2D, text: string, maxW: 
   }
   if (line) lines += 1;
   return lines || 1;
+}
+
+// Splits text into up to `maxLines` lines that fit `maxW` at the current font,
+// ellipsizing the last line if the text still overflows. Used by campaign pills
+// so long campaign names wrap instead of being hard-truncated.
+function splitIntoLines(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLines: number): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w;
+    if (ctx.measureText(test).width > maxW && line) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  if (lines.length <= maxLines) return lines;
+  const kept = lines.slice(0, maxLines);
+  let last = kept[maxLines - 1];
+  while (last.length > 1 && ctx.measureText(`${last}…`).width > maxW) {
+    last = last.slice(0, -1).trimEnd();
+  }
+  kept[maxLines - 1] = `${last}…`;
+  return kept;
+}
+
+// Draws one or more campaign pills stacked below the discount badge (top-right).
+// Long names wrap to two lines; multiple campaigns stack downward.
+function drawCampaignPills(
+  ctx: CanvasRenderingContext2D,
+  W: number, H: number, campaigns: string[], startY: number,
+) {
+  const labels = campaigns.map((c) => sanitize(c).toUpperCase()).filter(Boolean);
+  if (labels.length === 0) return;
+  const bW = Math.round(W * 0.24);
+  const bX = W - bW;
+  const fs = Math.round(H * 0.013);
+  const lineH = Math.round(fs * 1.2);
+  const padX = Math.round(W * 0.012);
+  const padY = Math.round(H * 0.005);
+  const gap = Math.round(H * 0.004);
+  ctx.font = `600 ${fs}px sans-serif`;
+  ctx.textAlign = "center";
+  let y = startY;
+  for (const label of labels) {
+    const lines = splitIntoLines(ctx, label, bW - padX * 2, 2);
+    const pillH = lines.length * lineH + padY * 2;
+    ctx.fillStyle = "rgba(59,7,100,0.85)";
+    ctx.fillRect(bX, y, bW, pillH);
+    ctx.fillStyle = "#e9d5ff";
+    lines.forEach((ln, i) => {
+      ctx.fillText(ln, bX + bW / 2, y + padY + fs + i * lineH);
+    });
+    y += pillH + gap;
+  }
 }
 
 export function drawBgImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
@@ -394,7 +452,7 @@ export function drawStory(
 
   // Bloqueio Aéreo badge — top-left
   if (data.bloqueioAereo) {
-    const baTxt = `BLOQUEIO AÉREO — ${data.destino.toUpperCase()}`;
+    const baTxt = "BLOQUEIO AÉREO";
     const baFs = Math.round(H * 0.018);
     ctx.font = `800 ${baFs}px sans-serif`;
     const baTxtW = ctx.measureText(baTxt).width;
@@ -418,20 +476,13 @@ export function drawStory(
       hits.push({ key: "badge", label: "Desconto", ...b });
       highlightIfNeeded(ctx, b, "badge", "Desconto", W, opts);
     }
-    // Campanha pill — below discount badge
-    if (data.campanha) {
-      const bW = Math.round(W * 0.24);
-      const bX = W - bW;
+    // Campanha pills — below discount badge (wrap long names, stack multiples)
+    const campaignList = (data.campanhas && data.campanhas.length > 0)
+      ? data.campanhas
+      : (data.campanha ? [data.campanha] : []);
+    if (campaignList.length > 0) {
       const badgeBottomY = Math.round(H * 0.032) + Math.round(H * 0.072);
-      const pillH = Math.round(H * 0.026);
-      const pillY = badgeBottomY + Math.round(H * 0.006);
-      ctx.fillStyle = "rgba(59,7,100,0.85)";
-      ctx.fillRect(bX, pillY, bW, pillH);
-      ctx.fillStyle = "#e9d5ff";
-      ctx.font = `600 ${Math.round(H * 0.013)}px sans-serif`;
-      ctx.textAlign = "center";
-      const campTxt = data.campanha.length > 20 ? data.campanha.substring(0, 20) + "\u2026" : data.campanha;
-      ctx.fillText(campTxt.toUpperCase(), bX + bW / 2, pillY + pillH * 0.72);
+      drawCampaignPills(ctx, W, H, campaignList, badgeBottomY + Math.round(H * 0.006));
     }
   }
 
@@ -557,7 +608,7 @@ export function drawStory(
       ctx.fillText(priceTxt, prx, py2); py2 += Math.round(H * 0.024 * sc);
       if (data.precoAVista) {
         let avistaFs = Math.round(H * 0.013 * sc);
-        const avistaTxt = `Ou ${data.precoAVista}`;
+        const avistaTxt = `Ou ${data.precoAVista} no PIX`;
         ctx.fillStyle = "#e2e8f0"; ctx.font = `600 ${avistaFs}px sans-serif`;
         while (ctx.measureText(avistaTxt).width > priceMaxW && avistaFs > 14) {
           avistaFs -= 1; ctx.font = `600 ${avistaFs}px sans-serif`;
@@ -691,7 +742,7 @@ export function drawFeed(
 
   // Bloqueio Aéreo badge — top-left
   if (data.bloqueioAereo) {
-    const baTxt = `BLOQUEIO AÉREO — ${data.destino.toUpperCase()}`;
+    const baTxt = "BLOQUEIO AÉREO";
     const baFs = Math.round(H * 0.018);
     ctx.font = `800 ${baFs}px sans-serif`;
     const baTxtW = ctx.measureText(baTxt).width;
@@ -715,20 +766,13 @@ export function drawFeed(
       hits.push({ key: "badge", label: "Desconto", ...b });
       highlightIfNeeded(ctx, b, "badge", "Desconto", W, opts);
     }
-    // Campanha pill — below discount badge
-    if (data.campanha) {
-      const bW = Math.round(W * 0.24);
-      const bX = W - bW;
+    // Campanha pills — below discount badge (wrap long names, stack multiples)
+    const campaignList = (data.campanhas && data.campanhas.length > 0)
+      ? data.campanhas
+      : (data.campanha ? [data.campanha] : []);
+    if (campaignList.length > 0) {
       const badgeBottomY = Math.round(H * 0.032) + Math.round(H * 0.072);
-      const pillH = Math.round(H * 0.026);
-      const pillY = badgeBottomY + Math.round(H * 0.006);
-      ctx.fillStyle = "rgba(59,7,100,0.85)";
-      ctx.fillRect(bX, pillY, bW, pillH);
-      ctx.fillStyle = "#e9d5ff";
-      ctx.font = `600 ${Math.round(H * 0.013)}px sans-serif`;
-      ctx.textAlign = "center";
-      const campTxt = data.campanha.length > 20 ? data.campanha.substring(0, 20) + "\u2026" : data.campanha;
-      ctx.fillText(campTxt.toUpperCase(), bX + bW / 2, pillY + pillH * 0.72);
+      drawCampaignPills(ctx, W, H, campaignList, badgeBottomY + Math.round(H * 0.006));
     }
   }
 
@@ -868,7 +912,7 @@ export function drawFeed(
       ctx.fillText(`R$ ${data.precoParcela.replace("R$ ", "")}`, prx, py2); py2 += Math.round(H * 0.026 * sc);
       if (data.precoAVista) {
         ctx.fillStyle = "#e2e8f0"; ctx.font = `600 ${Math.round(H * 0.014 * sc)}px sans-serif`;
-        ctx.fillText(`Ou ${data.precoAVista}`, prx, py2); py2 += Math.round(H * 0.018 * sc);
+        ctx.fillText(`Ou ${data.precoAVista} no PIX`, prx, py2); py2 += Math.round(H * 0.018 * sc);
       }
       ctx.fillStyle = "#94a3b8"; ctx.font = `${Math.round(H * 0.013 * sc)}px sans-serif`;
       ctx.fillText("por pessoa em apto duplo", prx, py2);

@@ -118,6 +118,23 @@ const DataDashboard = ({ data, onChange }: DataDashboardProps) => {
     onChange({ ...data, inclui: newInclui });
   };
 
+  // Campaigns — support multiple. `campanha` is kept in sync with the first
+  // entry so anything still reading the legacy single field keeps working.
+  const campaigns = data.campanhas ?? (data.campanha ? [data.campanha] : []);
+  const setCampaigns = (next: string[]) =>
+    onChange({ ...data, campanhas: next, campanha: next[0] ?? "" });
+  const updateCampaign = (i: number, value: string) => {
+    const next = [...campaigns];
+    next[i] = value;
+    setCampaigns(next);
+  };
+  const addCampaign = () => setCampaigns([...campaigns, ""]);
+  const removeCampaign = (i: number) => {
+    const next = [...campaigns];
+    next.splice(i, 1);
+    setCampaigns(next);
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 px-1">
@@ -137,7 +154,53 @@ const DataDashboard = ({ data, onChange }: DataDashboardProps) => {
         <FieldRow icon={Moon} label="Duração" value={(data.duracao as string) || ""} onChange={(v) => updateField("duracao", v)} />
         <FieldRow icon={UtensilsCrossed} label="Regime" value={(data.regime as string) || ""} onChange={(v) => updateField("regime", v)} />
         <FieldRow icon={Plane} label="Tipo" value={(data.tipoProduto as string) || ""} onChange={(v) => updateField("tipoProduto", v)} />
-        <FieldRow icon={Calendar} label="Campanha" value={(data.campanha as string) || ""} onChange={(v) => updateField("campanha", v)} />
+
+        {/* Campanhas — múltiplas; nomes longos quebram em duas linhas na lâmina */}
+        <div className="pt-2">
+          <div className="flex items-center justify-between mb-1">
+            <label className="label-caps flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+              {campaigns.length > 1 ? "Campanhas" : "Campanha"}
+            </label>
+            <Button
+              onClick={addCampaign}
+              size="sm"
+              variant="ghost"
+              className="h-6 px-2 text-xs gap-1"
+              style={{ color: "#9333EA" }}
+            >
+              <Plus className="w-3 h-3" /> Adicionar
+            </Button>
+          </div>
+          {campaigns.length === 0 ? (
+            <Input
+              value=""
+              placeholder="Nome da campanha..."
+              onChange={(e) => setCampaigns([e.target.value])}
+              className="h-7 text-sm bg-muted/50"
+            />
+          ) : (
+            campaigns.map((c, i) => (
+              <div key={i} className="flex items-center gap-2 group mb-1">
+                <Input
+                  value={c}
+                  onChange={(e) => updateCampaign(i, e.target.value)}
+                  className="h-7 text-sm flex-1 bg-muted/50"
+                  placeholder="Nome da campanha..."
+                />
+                <Button
+                  onClick={() => removeCampaign(i)}
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive shrink-0 transition-opacity"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+
         <FieldRow icon={Percent} label="Desconto %" value={(data.desconto as string) || ""} onChange={(v) => updateField("desconto", v)} />
       </Section>
 

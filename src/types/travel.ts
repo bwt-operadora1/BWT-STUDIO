@@ -38,6 +38,8 @@ export interface TravelData {
   condicoes?: string;
   tipoProduto?: string;
   campanha?: string;
+  /** Multiple campaigns. `campanha` is kept as the first entry for back-compat. */
+  campanhas?: string[];
   bloqueioAereo?: boolean;
   marketing?: MarketingContent;
   archiveSessionId?: string;
